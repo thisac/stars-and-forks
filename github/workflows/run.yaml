@@ -1,0 +1,38 @@
+name: Run
+
+on:
+  schedule:
+    - cron:  '0 * * * *'
+
+jobs:
+  check_channels:
+    name: Update stars and forks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+      - name: Cancel previous actions
+        uses: styfle/cancel-workflow-action@0.5.0
+        with:
+          access_token: ${{ github.token }}
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run update
+        run: |
+          cd src
+          python starforks.py -t ${{ github.token }}
+      - name: Push changes
+        run: |
+          git config user.name "Starforks Bot"
+          git config user.email "<>"
+          git add plots/*
+          git add README.md
+          git add stars_and_forks.md
+          git commit -m "Update stars and forks"
+          git push
