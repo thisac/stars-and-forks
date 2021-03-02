@@ -3,6 +3,7 @@ import csv
 from pathlib import Path
 from datetime import date
 
+import matplotlib.pyplot as plt
 from github import Github
 
 class Connection():
@@ -80,7 +81,7 @@ class Connection():
 
             w = csv.writer(csvfile)
             if not file_exists:
-                w.writerow([""] + fieldnames)
+                w.writerow(("",) + fieldnames)
 
             w.writerow((str(date.today()),) + d)
 

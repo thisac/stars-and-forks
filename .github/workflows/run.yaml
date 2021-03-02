@@ -1,4 +1,4 @@
-name: Run
+name: Update stars and forks
 
 on:
   schedule:
@@ -25,8 +25,7 @@ jobs:
           pip install -r requirements.txt
       - name: Run update
         run: |
-          cd src
-          python starforks.py -t ${{ github.token }}
+          python src/starforks.py -t ${{ github.token }}
       - name: Push changes
         run: |
           git config user.name "Starforks Bot"
@@ -34,5 +33,5 @@ jobs:
           git add plots/*
           git add README.md
           git add stars_and_forks.md
-          git commit -m "Update stars and forks"
+          git commit -m "update stars and forks"
           git push
