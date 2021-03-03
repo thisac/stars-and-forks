@@ -2,7 +2,7 @@ name: Update stars and forks
 
 on:
   schedule:
-    - cron:  '0 0,18 * * *'
+    - cron:  '0 2 * * *'
 
 jobs:
   check_channels:
