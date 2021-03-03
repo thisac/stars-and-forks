@@ -146,6 +146,7 @@ def save_plots(data: dict, title: str="", filename: str="plot") -> None:
     """TODO"""
     fig, ax = plt.subplots()
 
+    # use enough colour/linestyle combinations to get a new for each repo
     colours = [
         "xkcd:purple",
         "xkcd:green",
@@ -162,14 +163,15 @@ def save_plots(data: dict, title: str="", filename: str="plot") -> None:
         "xkcd:cyan",
         "xkcd:periwinkle"
     ]
-
     new_prop_cycle = (
         cycler(linestyle=["-", ":", "--", "-."]) *
         cycler(color=colours)
     )
-    ax.set_prop_cycle(new_prop_cycle)
 
     for d_type, vals in data.items():
+        # set the prop cycle for each fig
+        ax.set_prop_cycle(new_prop_cycle)
+
         n_plots = 0
         for organization, data_list in vals.items():
             for k, v in data_list.items():
@@ -177,7 +179,8 @@ def save_plots(data: dict, title: str="", filename: str="plot") -> None:
                     ax.plot(data_list["time"], v, label=k)
                     n_plots += 1
 
-
+        # decide font size and number of columns in legend depending on the
+        # number of plotted repositories
         if n_plots < 17:
             # 1 col with max 16 repos
             fontsize = 'medium'
@@ -193,14 +196,13 @@ def save_plots(data: dict, title: str="", filename: str="plot") -> None:
 
         ax.legend(
             frameon=False,
-            title='Public repositories',
             bbox_to_anchor=(1.1, 1),
             loc='upper left',
             fontsize=fontsize,
             ncol=ncol
         )
         ax.set_ylabel = d_type
-        ax.set_title = title
+        fig.suptitle(title + f"  /  {d_type.capitalize()}")
 
         fig.set_size_inches(10, 5)
         fig.subplots_adjust(left=0.1, bottom=0.1, right=0.75 - 0.10*ncol, top=0.9)
