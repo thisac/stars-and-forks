@@ -2,7 +2,10 @@ import sys
 import csv
 from pathlib import Path
 from datetime import date
+from typing import Optional, Union
+from cycler import cycler
 
+import numpy as np
 import matplotlib.pyplot as plt
 from github import Github
 
@@ -94,6 +97,129 @@ class Connection():
             self.write_data(data)
 
 
+def load_data(
+    organization: Union[str, list] = "all",
+    repositories: Union[str, list] = "all",
+    d_type: Union[str, list] = "all"
+) -> dict:
+    """TODO"""
+    if organization == "all":
+        organization = ["PennyLaneAI", "XanaduAI"]
+    elif isinstance(organization, str):
+        organization = [organization]
+
+    if d_type == "all":
+        d_type = ["stars", "forks"]
+    elif isinstance(d_type, str):
+        d_type = [d_type]
+
+    datapath = Path("data")
+    data = dict()
+    for t in d_type:
+        data[t] = dict()
+        for org in organization:
+            data[t][org] = dict()
+
+            filename = f"{org.lower()}_{t}.csv"
+            filepath = datapath / filename
+
+            if not filepath.exists():
+                print("File does not exits. No data loaded!")
+                return {}
+
+            csvfile = open(filepath, "r")
+
+            fieldnames = csvfile.readline().split(",")[1:]
+            data_as_str = [d.strip().split(",") for d in csvfile.readlines()]
+            data_as_str_numpy = np.array(data_as_str).T
+
+            data[t][org]["time"] = data_as_str_numpy[0]
+
+            for i, fn in enumerate(fieldnames):
+                if repositories != "all" and fn not in repositories:
+                    continue
+                data[t][org][fn] = data_as_str_numpy[i + 1].astype(int)
+
+    return data
+
+def save_plots(data: dict, title: str="", filename: str="plot") -> None:
+    """TODO"""
+    fig, ax = plt.subplots()
+
+    colours = [
+        "xkcd:purple",
+        "xkcd:green",
+        "xkcd:brown",
+        "xkcd:red",
+        "xkcd:blue",
+        "xkcd:pink",
+        "xkcd:orange",
+        "xkcd:magenta",
+        "xkcd:yellow",
+        "xkcd:grey",
+        "xkcd:forest green",
+        "xkcd:turquoise",
+        "xkcd:cyan",
+        "xkcd:periwinkle"
+    ]
+
+    new_prop_cycle = (
+        cycler(linestyle=["-", ":", "--", "-."]) *
+        cycler(color=colours)
+    )
+    ax.set_prop_cycle(new_prop_cycle)
+
+    for d_type, vals in data.items():
+        n_plots = 0
+        for organization, data_list in vals.items():
+            for k, v in data_list.items():
+                if k != "time":
+                    ax.plot(data_list["time"], v, label=k)
+                    n_plots += 1
+
+
+        if n_plots < 17:
+            # 1 col with max 16 repos
+            fontsize = 'medium'
+            ncol = 1
+        elif n_plots < 49:
+            # 2 cols with max 24 in each
+            fontsize = 'x-small'
+            ncol = 2
+        else:
+            # 3+ cols with max 28 in each
+            fontsize = 'xx-small'
+            ncol = n_plots // 29 + 1
+
+        ax.legend(
+            frameon=False,
+            title='Public repositories',
+            bbox_to_anchor=(1.1, 1),
+            loc='upper left',
+            fontsize=fontsize,
+            ncol=ncol
+        )
+        ax.set_ylabel = d_type
+        ax.set_title = title
+
+        fig.set_size_inches(10, 5)
+        fig.subplots_adjust(left=0.1, bottom=0.1, right=0.75 - 0.10*ncol, top=0.9)
+        fig.savefig(f"plots/{filename}_{d_type}.png")
+
+        plt.cla()
+
+
+def update_plots() -> None:
+    """TODO"""
+    plt.style.use('ggplot')
+
+    pl_and_sf_data = load_data(repositories=["pennylane", "strawberryfields"])
+    save_plots(pl_and_sf_data, title="PennyLane & Strawberry Fields", filename="pl_sf")
+
+    all_repos_data = load_data()
+    save_plots(all_repos_data, title="GitHub Repos", filename="all_repos")
+
+
 if __name__ == "__main__":
     if len(sys.argv) <= 2:
         raise SystemExit(
@@ -106,3 +232,5 @@ if __name__ == "__main__":
 
         connection = Connection(ACCESS_TOKEN)
         connection.update()
+
+        update_plots()
