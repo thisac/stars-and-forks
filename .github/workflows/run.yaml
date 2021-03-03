@@ -2,7 +2,7 @@ name: Update stars and forks
 
 on:
   schedule:
-    - cron:  '0 * * * *'
+    - cron:  '0 */2 * * *'
 
 jobs:
   check_channels:
@@ -30,8 +30,6 @@ jobs:
         run: |
           git config user.name "Starforks Bot"
           git config user.email "<>"
-          git add plots/*
-          git add README.md
-          git add stars_and_forks.md
+          git add data plots README.md stars_and_forks.md
           git commit -m "update stars and forks"
           git push
